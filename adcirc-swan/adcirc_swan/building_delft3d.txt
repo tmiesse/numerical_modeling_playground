@@ -1,0 +1,210 @@
+### assuming you have the intel compilers installed
+
+
+# Compile Zlib 
+wget https://www.zlib.net/zlib-1.2.11.tar.gz
+mkdir zlib_build
+ZDIR=*/zlib_build # path of build
+tar -xvzf zlib-1.2.11.tar.gz
+cd zlib-1.2.11
+CC=icc FC=ifort ./configure --prefix=$ZDIR
+make -j 2
+make check
+make install
+
+# Compile HDF5
+mkdir hdf_build
+H5DIR = */hdf_build # path of hdf build
+cd hdf5*
+CC=icc FC=ifort CXX=icpc ./configure --prefix=${H5DIR} --enable-cxx --enable-fortran --enable-hl --with-zlib=${ZDIR} --with-szlib=$SDIR
+make -j 2
+make check
+make install
+
+# Compile Curl
+mkdir curl_build
+ODIR = */curl_build # path of curl build
+cd curl*
+CC=icc FC=ifort ./configure --prefix=${ODIR}
+make -j 2
+
+
+
+
+
+
+H5DIR=/opt/sw/spack/apps/linux-rhel8-x86_64_v2/oneapi-2022.1.2/hdf5-1.12.1-mv
+ZDIR=/opt/sw/spack/apps/linux-rhel8-x86_64_v2/oneapi-2022.1.2/zlib-1.2.11-52
+ODIR=/opt/sw/spack/apps/linux-rhel8-x86_64_v2/oneapi-2022.1.2/curl-7.80.0-f3
+
+
+
+cmake .. \
+-DCMAKE_INSTALL_PREFIX=${NCDIR} \
+-DCMAKE_CXX_COMPILER=icpc \
+-DCMAKE_C_COMPILER=icc \
+-DCMAKE_FORTRAN_COMPILER=ifort \
+-DCURL_DIR=${ODIR}
+
+
+
+
+
+
+ODIR=/opt/sw/spack/apps/linux-centos8-cascadelake/intel-20.0.2/curl-7.74.0-hc
+H5DIR=/opt/sw/spack/apps/linux-centos8-cascadelake/intel-20.0.2/hdf5-1.12.0-dw
+ZDIR=/opt/sw/spack/apps/linux-centos8-cascadelake/intel-20.0.2/zlib-1.2.11-tj
+SDIR=/opt/sw/spack/apps/linux-centos8-cascadelake/intel-20.0.2/sz-2.1.11.1-cn
+NCDIR=/home/tmiesse/netcdf_build
+FPATH=/opt/intel/2020.2/compilers_and_libraries_2020.2.254/linux/bin/intel64/ifort
+CPATH=/opt/intel/2020.2/compilers_and_libraries_2020.2.254/linux/bin/intel64/icc
+CXXPATH=/opt/intel/2020.2/compilers_and_libraries_2020.2.254/linux/bin/intel64/icpc
+
+
+CC=icc FC=ifort CXX=icpc \
+./configure --prefix=$NCDIR --disable-libxml2 \
+LDFLAGS="-L$H5DIR/lib -L$ODIR/lib -L$ZDIR/lib -L$SDIR" \
+CPPFLAGS="-I$H5DIR/include -I$ODIR/include -I$ZDIR/include -I$SDIR/include" \
+LT_SYS_LIBRARY_PATH=$H5DIR/lib
+
+
+cmake .. \
+-DCMAKE_INSTALL_PREFIX=$NCDIR \
+-DCMAKE_C_COMPILER=$CPATH \
+-DCMAKE_FORTRAN_COMPILER=$FPATH \
+-DCMAKE_CXX_COMPILER=$CXXPATH
+
+
+
+
+cmake .. \
+-DCMAKE_C_COMPILER=$CPATH \
+-DCMAKE_FORTRAN_COMPILER=$FPATH \
+-DCMAKE_CXX_COMPILER=$CXXPATH \
+-DBUILD_ADCIRC=ON \
+-DBUILD_PADCIRC=ON \
+-DBUILD_ADCSWAN=ON \
+-DBUILD_PADCSWAN=ON \
+-DBUILD_ADCPREP=ON \
+-DBUILD_UTILITIES=ON \
+-DBUILD_SWAN=ON \
+-DBUILD_PUNSWAN=ON \
+-DENABLE_OUTPUT_NETCDF=ON \
+-DNETCDFHOME=$NCDIR
+
+	-DBUILD_ADCIRC=ON -DBUILD_PADCIRC=ON -DBUILD_ADCSWAN=ON \
+	-DBUILD_PADCSWAN=ON -DBUILD_ADCPREP=ON -DBUILD_UTILITIES=ON \
+	-DBUILD_ASWIP=ON -DBUILD_SWAN=ON -DBUILD_PUNSWAN=ON \
+	-DENABLE_OUTPUT_NETCDF=ON -DENABLE_OUTPUT_XDMF=OFF \
+	-DNETCDFHOME=/scratch/tmiesse/src_libs/netcdf_build
+
+
+
+
+make check
+make install
+
+# Compile Netcdf-c
+mkdir netcdf_build
+NCDIR=*/netcdf_build
+
+
+CC=icc FC=ifort ./configure --prefix=$NCDIR --disable-libxml2 LDFLAGS="-L$H5DIR/lib -L$ODIR/lib -L$ZDIR/lib -L$SDIR/lib" CPPFLAGS="-I$H5DIR/include -I$ODIR/include -I$ZDIR/include -I$SDIR/include" LT_SYS_LIBRARY_PATH=$H5DIR/lib
+
+/scratch/tmiesse/src_libs/cmake-3.26.3/bin/cmake
+
+
+/scratch/tmiesse/src_libs/cmake-3.26.3/bin/cmake .. \
+-DCMAKE_INSTALL_PREFIX=${NCDIR} -DCMAKE_C_COMPILER=icc -DCMAKE_Fortran_COMPILER=ifort \
+-DNETCDF_C_LIBRARY=${NCDIR}/lib -DnetCDF_LIBRARIES="$NCDIR/lib/libnetcdf.so" \
+-DNETCDF_C_INCLUDE_DIR=${NCDIR}/include -DHDF5_INCLUDE_DIRS=${H5DIR}/include \
+-DHDF5_LIBRARIES=${H5DIR}/lib -DZLIB_LIBRARY=${ZDIR}/lib \
+-DCURL_INCLUDE_DIR=${ODIR}/include -DCURL_LIBRARY=${ODIR}/lib
+
+
+
+/scratch/tmiesse/src_libs/cmake-3.26.3/bin/cmake .. \
+	-DCMAKE_C_COMPILER=icc -DCMAKE_Fortran_COMPILER=ifort \
+	-DBUILD_ADCIRC=ON -DBUILD_PADCIRC=ON -DBUILD_ADCSWAN=ON \
+	-DBUILD_PADCSWAN=ON -DBUILD_ADCPREP=ON -DBUILD_UTILITIES=ON \
+	-DBUILD_ASWIP=ON -DBUILD_SWAN=ON -DBUILD_PUNSWAN=ON \
+	-DENABLE_OUTPUT_NETCDF=ON -DENABLE_OUTPUT_XDMF=OFF \
+	-DNETCDFHOME=/scratch/tmiesse/src_libs/netcdf_build
+
+
+
+
+
+/scratch/tmiesse/src_libs/cmake-3.26.3/bin/cmake .. \
+	-DCMAKE_C_COMPILER=icc \
+	-DCMAKE_Fortran_COMPILER=ifort \
+	-DNetCDF_C_CONFIG_EXECUTABLE=nc-config \
+	-DNetCDF_Fortran_CONFIG_EXECUTABLE=nf-config \
+	-DNetCDF_Fortran_LIBRARY=/opt/ohpc/pub/libs/intel/openmpi4/netcdf-fortran/4.5.2/lib/libnetcdff.so \
+	-DNetCDF_C_LIBRARY=/opt/ohpc/pub/libs/intel/openmpi4/netcdf/4.7.3/lib/libnetcdf.so \
+	-DSWITCH=Ifremer2 \
+	-DCMAKE_INSTALL_PREFIX=install > build.out
+
+cmake .. \
+	-DCMAKE_C_COMPILER=mpiicc \
+	-DCMAKE_Fortran_COMPILER=mpiifort \
+	-DNETCDFHOME=/glade/u/apps/ch/opt/netcdf/4.8.1/intel/19.1.1 \
+	-DSWITCH=Ifremer2 \
+	-DCMAKE_INSTALL_PREFIX=install > build.out
+
+
+	-DNetCDF_Fortran_INCLUDE_FILE=/scratch/tmiesse/src_libs/netcdf_build/include/netcdf.mod \
+	-DNetCDF_C_INCLUDE_FILE=/scratch/tmiesse/src_libs/netcdf_build/include/netcdf.h \
+
+2 different ways: 
+1. cmake # I'm not showing all my flags cause you can keep submitting cmake with more flags
+cmake -DCMAKE_C_COMPILER=icc -DCMAKE_Fortran_COMPILER=ifort -DNETCDF_C_LIBRARY=${NCDIR}/lib -DHDF5_INCLUDE_DIRS=${H5DIR}/include -DHDF5_LIBRARIES=${H5DIR}/lib -DZLIB_LIBRARY=${ZDIR}/lib -DCURL_INCLUDE_DIR=${ODIR}/include -DCURL_LIBRARY=${ODIR}/lib
+make -j 2
+make install
+2. bootstrap # i couldn't get this one working. for some reason it kept ignoring my flags for icc compiler
+./bootstrap
+ make clean;make distclean; CC=icc FC=ifort ./configure --prefix=$NCDIR LDFLAGS="-L$H5DIR/lib -L$ODIR/lib -L$ZDIR/lib -L$SDIR/lib" CPPFLAGS="-I$H5DIR/include -I$ODIR/include -I$ZDIR/include -I$SDIR/include" LT_SYS_LIBRARY_PATH=$H5DIR/lib; make -j 2 ;make install; LT_SYS_LIBRARY_PATH=$NCDIR/lib make check ; 
+
+ make clean;make distclean; CC=icc FC=ifort ./configure --prefix=$NCDIR LDFLAGS="-L$H5DIR/lib -L$ODIR/lib -L$ZDIR/lib CPPFLAGS="-I$H5DIR/include -I$ODIR/include/curl -I$ZDIR/include LT_SYS_LIBRARY_PATH=$H5DIR/lib; make -j 2 ;make install; LT_SYS_LIBRARY_PATH=$NCDIR/lib make check ; 
+
+
+make -j 2
+make install
+LT_SYS_LIBRARY_PATH=$NCDIR/lib make check
+# also they have an experimental flag to add netcdf-fortran to the build (it worked but some files were missing)
+
+# Compile Netcdf-f
+cd netcdf-fortran
+# it needs to build in the netcdf-c dir. Due to lib dependencies. There are ways to keep seperate but thats a seperate issue
+make clean;make distclean; ./configure --prefix=$NCDIR --disable-fortran-type-check CC=icc FC=ifort F77=ifort CXX=icpc FCFLAGS="/home/admin/neptune_work/compilers/intel2/intel_v2/compilers_and_libraries_2019.4.243/linux/compiler" CPPFLAGS="-I$H5DIR/include -I$SDIR/include -I$ODIR/include -I$NCDIR/include" LDFLAGS="-L$H5DIR/lib -L$SDIR/lib -L$ODIR/lib -L$NCDIR/lib" CFLAGS="-L/home/admin/neptune_work/compilers/intel2/intel_v2/compilers_and_libraries_2019.4.243/linux/compiler/lib/intel64_lin" LT_SYS_LIBRARY_PATH=$NCDIR/lib ; make -j 4;make install; LD_LIBRARY_PATH=$NCDIR/lib LIBS="-lnetcdf" make check
+make -j 2
+make install 
+make check # this failed for me but everything correctly compiled and there are some reasons that unidata explains
+
+#compile mpich
+
+
+CC=icc FC=ifort F77=ifort CXX=icpc ./configure --prefix=$MPDIR --enable-fortran --enable-cxx --enable-threads
+
+# Compile Delft3d (with netcdf and parallel)
+
+# I have my intel compilers on my path so I don't need to call the path of the exe.
+H5DIR=/home/admin/neptune_work/compilers/intel2/compiled_w_intel/hdf5_build
+NCDIR=/home/admin/neptune_work/compilers/intel2/compiled_w_intel/netcdf_build
+NFDIR=/home/admin/neptune_work/compilers/intel2/compiled_w_intel/nf_build
+SDIR=/home/admin/neptune_work/compilers/intel2/compiled_w_intel/szip_build
+ZDIR=/home/admin/neptune_work/compilers/intel2/compiled_w_intel/zlib_build
+ODIR=/home/admin/neptune_work/compilers/intel2/compiled_w_intel/curl_build
+NDIR=/home/admin/neptune_work/compilers/intel2/netcdf_4_other_builds/nc_nf_build
+
+export FFLAGS="-O3 -xHost -ip -no-prec-div -static-intel"
+export CPP='icc -E'
+export CXXCPP='icpc -E'
+
+make clean;make distclean;./clean.sh;./autogen.sh; cd third_party_open/kdtree2/ ; ./autogen.sh ; cd - ; NETCDF_CFLAGS="-I${NCDIR}/include/" NETCDF_LIBS="-L${NCDIR}/lib/" NETCDF_FORTRAN_CFLAGS="-I${NFDIR}/include/" NETCDF_FORTRAN_LIBS="-L${NFDIR}/lib" ./configure --prefix=/home/admin/work_directory/models/delft3d/delft_exe FC="ifort -lnetcdf -lifcore" CC="icc -lnetcdf -lifcore" CXX="icpc -lnetcdf -lifcore" F77="ifort -lnetcdf -lifcore" MPICC="mpiicc -lnetcdf -lifcore" MPICXX="mpiicpc -lnetcdf -lifcore" MPIFC="mpiifort -lnetcdf -lifcore" MPIF77="mpiifort -lnetcdf -lifcore" FCLIBS='-L/home/admin/work_directory/compilers/intel_build/compilers_and_libraries_2019.2.187/linux/compiler/lib/intel64_lin' CPPFLAGS="-I//home/admin/work_directory/compilers/intel_build/compilers_and_libraries_2019.2.187/linux/compiler/include" LDFLAGS="-L/home/admin/work_directory/compilers/intel_build/compilers_and_libraries_2019.2.187/linux/compiler/lib/intel64_lin"
+
+
+make clean;make distclean; ./configure --prefix=$NFDIR --disable-fortran-type-check CC=icc FC=ifort F77=ifort CXX=icpc FCFLAGS="/home/admin/intel/compilers_and_libraries_2019/linux/compiler/" CPPFLAGS="-I$H5DIR/include -I$SDIR/include -I$ODIR/include -I$NCDIR/include" LDFLAGS="-L$H5DIR/lib -L$SDIR/lib -L$ODIR/lib -L$NCDIR/lib" CFLAGS="-L/home/admin/intel/compilers_and_libraries_2019/linux/compiler/lib/intel64_lin" LT_SYS_LIBRARY_PATH=$NCDIR/lib ; make -j 4;make install; LD_LIBRARY_PATH=$NCDIR/lib LIBS="-lnetcdf" make check
+
+
+
